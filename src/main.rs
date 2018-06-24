@@ -47,7 +47,13 @@ fn main() {
         println!("Filename: {}", header.filename);
         let mut d = DeflateDecoder::new(header.data.as_slice());
         let mut s = String::new();
-        d.read_to_string(&mut s).unwrap();
-        println!("Text: {}", s);
+        let text_content = match d.read_to_string(&mut s) {
+            Ok(content) => content,
+            Err(_) => {
+                println!("Data is not valid UTF-8; aborting text decode.");
+                continue;
+            }
+        };
+        println!("Text: {}", text_content);
     }
 }
