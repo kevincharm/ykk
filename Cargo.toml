@@ -5,3 +5,4 @@ authors = ["Kevin Tjiam <kevin@kevincharm.com>"]
 
 [dependencies]
 byteorder = "1.2.3"
+flate2 = "1.0.1"

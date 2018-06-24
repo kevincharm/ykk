@@ -1,9 +1,14 @@
 extern crate byteorder;
+extern crate flate2;
+
 mod parser;
+
+use flate2::read::DeflateDecoder;
 use parser::local_file_header::*;
 use parser::tag::*;
 use std::env;
 use std::fs;
+use std::io::prelude::*;
 use std::io::Cursor;
 use std::path::Path;
 
@@ -31,13 +36,18 @@ fn main() {
         match tag {
             Magic::LocalFile => {
                 let local_file_header = read_local_file(&mut cursor);
-                println!("Filename: {}", local_file_header.filename);
                 local_file_headers.push(local_file_header);
             }
-            Magic::CentralDirectoryFile => (),
-            Magic::EndOfCentralDirectory => {
-                break;
-            }
+            Magic::CentralDirectoryFile => break,
+            Magic::EndOfCentralDirectory => break,
         };
+    }
+
+    for header in local_file_headers.into_iter() {
+        println!("Filename: {}", header.filename);
+        let mut d = DeflateDecoder::new(header.data.as_slice());
+        let mut s = String::new();
+        d.read_to_string(&mut s).unwrap();
+        println!("Text: {}", s);
     }
 }
