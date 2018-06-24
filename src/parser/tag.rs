@@ -7,7 +7,7 @@ pub enum Magic {
     EndOfCentralDirectory,
 }
 
-pub fn read_tag(contents: &mut Cursor<&[u8]>) -> Result<Magic, u32> {
+pub fn parse_tag(contents: &mut Cursor<&[u8]>) -> Result<Magic, u32> {
     let tag = match contents.read_u32::<LittleEndian>() {
         Ok(t) => t,
         Err(_) => panic!("Failed to read next tag!"),

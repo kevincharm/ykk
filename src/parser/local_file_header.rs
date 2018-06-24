@@ -20,7 +20,7 @@ pub struct LocalFileHeader {
     pub data_descriptor: Vec<u8>,
 }
 
-pub fn read_local_file(contents: &mut Cursor<&[u8]>) -> LocalFileHeader {
+pub fn parse_local_file_header(contents: &mut Cursor<&[u8]>) -> LocalFileHeader {
     let version = contents.read_u16::<LittleEndian>().unwrap();
     let flags = contents.read_u16::<LittleEndian>().unwrap();
     let compression = contents.read_u16::<LittleEndian>().unwrap();

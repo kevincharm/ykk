@@ -27,7 +27,7 @@ fn main() {
     let mut cursor = Cursor::new(bytes.as_slice());
     let mut local_file_headers: Vec<LocalFileHeader> = vec![];
     loop {
-        let tag = match read_tag(&mut cursor) {
+        let tag = match parse_tag(&mut cursor) {
             Ok(t) => t,
             Err(t) => {
                 panic!("Bad tag: {}", t);
@@ -35,7 +35,7 @@ fn main() {
         };
         match tag {
             Magic::LocalFile => {
-                let local_file_header = read_local_file(&mut cursor);
+                let local_file_header = parse_local_file_header(&mut cursor);
                 local_file_headers.push(local_file_header);
             }
             Magic::CentralDirectoryFile => break,
