@@ -20,32 +20,32 @@ pub struct LocalFileHeader {
     pub data_descriptor: Vec<u8>,
 }
 
-pub fn parse_local_file_header(contents: &mut Cursor<&[u8]>) -> LocalFileHeader {
-    let version = contents.read_u16::<LittleEndian>().unwrap();
-    let flags = contents.read_u16::<LittleEndian>().unwrap();
-    let compression = contents.read_u16::<LittleEndian>().unwrap();
-    let modified_time = contents.read_u16::<LittleEndian>().unwrap();
-    let modified_date = contents.read_u16::<LittleEndian>().unwrap();
-    let crc32 = contents.read_u32::<LittleEndian>().unwrap();
-    let compressed_size = contents.read_u32::<LittleEndian>().unwrap();
-    let uncompressed_size = contents.read_u32::<LittleEndian>().unwrap();
-    let filename_length = contents.read_u16::<LittleEndian>().unwrap();
-    let extra_field_length = contents.read_u16::<LittleEndian>().unwrap();
+pub fn parse_local_file_header(cursor: &mut Cursor<&[u8]>) -> LocalFileHeader {
+    let version = cursor.read_u16::<LittleEndian>().unwrap();
+    let flags = cursor.read_u16::<LittleEndian>().unwrap();
+    let compression = cursor.read_u16::<LittleEndian>().unwrap();
+    let modified_time = cursor.read_u16::<LittleEndian>().unwrap();
+    let modified_date = cursor.read_u16::<LittleEndian>().unwrap();
+    let crc32 = cursor.read_u32::<LittleEndian>().unwrap();
+    let compressed_size = cursor.read_u32::<LittleEndian>().unwrap();
+    let uncompressed_size = cursor.read_u32::<LittleEndian>().unwrap();
+    let filename_length = cursor.read_u16::<LittleEndian>().unwrap();
+    let extra_field_length = cursor.read_u16::<LittleEndian>().unwrap();
 
     let mut raw_filename: Vec<u8> = vec![];
     for _ in 0..filename_length {
-        raw_filename.push(contents.read_u8().unwrap());
+        raw_filename.push(cursor.read_u8().unwrap());
     }
     let filename = String::from(str::from_utf8(raw_filename.as_slice()).unwrap());
 
     let mut extra_field = vec![];
     for _ in 0..extra_field_length {
-        extra_field.push(contents.read_u8().unwrap());
+        extra_field.push(cursor.read_u8().unwrap());
     }
 
     let mut data = vec![];
     for _ in 0..compressed_size {
-        data.push(contents.read_u8().unwrap());
+        data.push(cursor.read_u8().unwrap());
     }
 
     let mut data_descriptor_len = 0;
@@ -54,7 +54,7 @@ pub fn parse_local_file_header(contents: &mut Cursor<&[u8]>) -> LocalFileHeader 
     }
     let mut data_descriptor = vec![];
     for _ in 0..data_descriptor_len {
-        data_descriptor.push(contents.read_u8().unwrap());
+        data_descriptor.push(cursor.read_u8().unwrap());
     }
 
     let header = LocalFileHeader {
