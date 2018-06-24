@@ -5,6 +5,7 @@ mod parser;
 
 use flate2::read::DeflateDecoder;
 use parser::central_dir_file_header::*;
+use parser::end_of_central_dir_header::*;
 use parser::local_file_header::*;
 use parser::tag::*;
 use std::env;
@@ -28,6 +29,8 @@ fn main() {
     let mut cursor = Cursor::new(bytes.as_slice());
     let mut local_file_headers: Vec<LocalFileHeader> = vec![];
     let mut central_dir_file_headers: Vec<CentralDirectoryFileHeader> = vec![];
+    #[allow(unused_assignments)]
+    let mut end_of_central_dir_header: Option<EndOfCentralDirectoryHeader> = None;
     loop {
         let tag = match parse_tag(&mut cursor) {
             Ok(t) => t,
@@ -44,8 +47,16 @@ fn main() {
                 let central_dir_file_header = parse_central_dir_file_header(&mut cursor);
                 central_dir_file_headers.push(central_dir_file_header);
             }
-            Magic::EndOfCentralDirectory => break,
+            Magic::EndOfCentralDirectory => {
+                end_of_central_dir_header = Some(parse_end_of_central_dir_header(&mut cursor));
+                break;
+            }
         };
+    }
+
+    match end_of_central_dir_header {
+        Some(_) => (),
+        None => panic!("Invalid zip format: end of central directory not found!"),
     }
 
     for header in local_file_headers.into_iter() {
