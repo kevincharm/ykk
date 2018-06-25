@@ -59,21 +59,27 @@ fn main() {
         None => panic!("Invalid zip format: end of central directory not found!"),
     }
 
-    for header in local_file_headers.into_iter() {
-        println!("[lf] Filename: {}", header.filename);
-        let mut d = DeflateDecoder::new(header.data.as_slice());
-        let mut s = String::new();
-        let text_content = match d.read_to_string(&mut s) {
+    let mut headers = local_file_headers.into_iter();
+    for header in central_dir_file_headers.into_iter() {
+        println!("[cd] Filename: {}", header.filename);
+        let header = match headers.find(|s| s.filename == header.filename) {
+            None => continue,
+            Some(h) => h,
+        };
+        let mut decoder = DeflateDecoder::new(header.data.as_slice());
+        let mut buffer: Vec<u8> = vec![];
+        match decoder.read_to_end(&mut buffer) {
             Ok(content) => content,
             Err(_) => {
-                println!("Data is not valid UTF-8; aborting text decode.");
+                println!("Error deflating!");
                 continue;
             }
         };
-        println!("Text: {}", text_content);
-    }
-
-    for header in central_dir_file_headers.into_iter() {
-        println!("[cd] Filename: {}", header.filename);
+        match fs::write(header.filename, buffer) {
+            Ok(_) => (),
+            Err(err) => {
+                println!("Error deflating file: {:?}", err.kind());
+            }
+        }
     }
 }
