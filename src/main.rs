@@ -22,12 +22,12 @@ fn main() {
 
     let input_file_path = Path::new(&args[1]);
     let cwd = match input_file_path.parent() {
-        None => Path::new("/"),
         Some(p) => p,
+        None => Path::new("/"),
     };
     let bytes = match fs::read(input_file_path) {
-        Err(err) => panic!("Error reading file: {:?}", err.kind()),
         Ok(s) => s,
+        Err(err) => panic!("Error reading file: {:?}", err.kind()),
     };
 
     let mut cursor = Cursor::new(bytes.as_slice());
@@ -67,8 +67,8 @@ fn main() {
     for header in central_dir_file_headers.into_iter() {
         println!("Extracting {}...", header.filename);
         let header = match headers.find(|s| s.filename == header.filename) {
-            None => continue,
             Some(h) => h,
+            None => continue,
         };
         let mut decoder = DeflateDecoder::new(header.data.as_slice());
         let mut buffer: Vec<u8> = vec![];
