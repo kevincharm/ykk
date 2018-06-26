@@ -20,8 +20,12 @@ fn main() {
         panic!("Requires at least 1 path argument!")
     }
 
-    let path = Path::new(&args[1]);
-    let bytes = match fs::read(path) {
+    let input_file_path = Path::new(&args[1]);
+    let cwd = match input_file_path.parent() {
+        None => Path::new("/"),
+        Some(p) => p,
+    };
+    let bytes = match fs::read(input_file_path) {
         Err(err) => panic!("Error reading file: {:?}", err.kind()),
         Ok(s) => s,
     };
@@ -61,7 +65,7 @@ fn main() {
 
     let mut headers = local_file_headers.into_iter();
     for header in central_dir_file_headers.into_iter() {
-        println!("[cd] Filename: {}", header.filename);
+        println!("Extracting {}...", header.filename);
         let header = match headers.find(|s| s.filename == header.filename) {
             None => continue,
             Some(h) => h,
@@ -71,14 +75,16 @@ fn main() {
         match decoder.read_to_end(&mut buffer) {
             Ok(content) => content,
             Err(_) => {
-                println!("Error deflating!");
+                println!("Error deflating {}!", header.filename);
                 continue;
             }
         };
-        match fs::write(header.filename, buffer) {
+        let header_path = Path::new(&header.filename);
+        let full_path = cwd.join(header_path);
+        match fs::write(full_path, buffer) {
             Ok(_) => (),
             Err(err) => {
-                println!("Error deflating file: {:?}", err.kind());
+                println!("Error deflating {}: {:?}", header.filename, err.kind());
             }
         }
     }
